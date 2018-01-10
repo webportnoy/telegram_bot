@@ -19,17 +19,17 @@ Your site have to use https protocol.
 ### Create commands you want in TestBot class
 
 ```php
-	protected $commands = [
-			"/start" => "cmd_start",
-            "/help" => "cmd_help",
-            "/hi" => "cmd_hi"
-        ];
+protected $commands = [
+  "/start" => "cmd_start",
+  "/help" => "cmd_help",
+  "/hi" => "cmd_hi"
+];
 ```
 
 ### Create methods for commands
 
 ```php
-	function cmd_hi(){
-		$this->api->sendMessage( "Hi, @" . $this->result["message"]["from"]["username"] . "." );
-	}
+function cmd_hi(){
+  $this->api->sendMessage( "Hi, @" . $this->result["message"]["from"]["username"] . "." );
+}
 ```
