@@ -22,7 +22,7 @@ class TelegramBotApi{
 
 	public $debug = false;
 
-    public function __construct( $token = null ){
+	public function __construct( $token = null ){
 		if( isset( $token ) ){
 			$this->apiToken = $token;
 		}

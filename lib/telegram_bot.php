@@ -25,7 +25,7 @@ class TelegramBot{
 	 * Creates bot class
 	 * @param string $token Telegram Bot Api token
 	 */
-    public function __construct( $token = null ){
+	public function __construct( $token = null ){
 		if( !isset( $this->token ) && !isset( $token ) ){
 			$this->showWebhookForm();
 		}
