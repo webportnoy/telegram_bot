@@ -1,5 +1,5 @@
 # Basic Telergam Bot (php)
-This is a simple example of telegram bot using php without any dependencies
+This is a simple example of telegram bot using php without any dependencies. Can work with HTTP proxy.
 
 ## Installation
 Your site have to use https protocol.
@@ -14,6 +14,10 @@ Your site have to use https protocol.
 4. Paste token to form in browser and submit form
 5. Edit test_bot.php, paste token and bot name
 6. Talk to your bot
+
+## New in version 1.1
+1. sendAudio() method - sends audio file with audioplayer (20Mb max)
+2. HTTP proxy support.
 
 ## Customizing bot
 ### Create commands you want in TestBot class

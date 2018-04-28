@@ -12,7 +12,7 @@
 
 class TelegramBotApi{
 
-	const VERSION = '1.0';
+	const VERSION = '1.1';
 
 	protected $apiToken = null;
 
@@ -22,7 +22,9 @@ class TelegramBotApi{
 
 	public $debug = false;
 
-	public function __construct( $token = null ){
+	public $proxy = "";
+
+    public function __construct( $token = null ){
 		if( isset( $token ) ){
 			$this->apiToken = $token;
 		}
@@ -49,6 +51,10 @@ class TelegramBotApi{
 
 		if( isset( $body["message"]["chat"]["id"] ) ){
 			$this->chatId = $body["message"]["chat"]["id"];
+		}
+
+		if( $this->debug ){
+			@file_put_contents( "log.txt", print_r( $body, 1 ) . "\n", FILE_APPEND );
 		}
 
 		return $body;
@@ -93,6 +99,27 @@ class TelegramBotApi{
 	}
 
 	/**
+	 * Sending audio to chat
+	 *
+	 * @param string|array  $params  Url or File Id or array of parameters
+	 * @param string        $caption (Optional) Caption for image
+	 *
+	 * @link https://core.telegram.org/bots/api#sendaudio
+	 */
+	public function sendAudio( $params, $caption = null ){
+		if( is_string( $params ) ){
+			$params = ['audio' => $params];
+		}
+		if( !isset( $params['chat_id'] ) && isset( $this->chatId ) ){
+			$params['chat_id'] = $this->chatId;
+		}
+		if( !isset( $params['caption'] ) && isset( $caption ) ){
+			$params['caption'] = $caption;
+		}
+		return $this->call("sendAudio", $params);
+	}
+
+	/**
 	 * Sending document to chat
 	 *
 	 * @param string|array  $params  Url or File Id or array of parameters
@@ -131,18 +158,53 @@ class TelegramBotApi{
 			$query .= "?" . http_build_query( $params );
 		}
 
-		$context  = stream_context_create( ['http' => [ 'method'  => 'POST' ] ] );
 		if( $this->debug ){
-			@file_put_contents( "request.txt", $query . "\n", FILE_APPEND );
+			@file_put_contents( "log.txt", $query . "\n", FILE_APPEND );
 		}
 
-		$result = @file_get_contents( $query, false, $context );
+		$context = $this->getStreamContext();
+
+		ini_set('display_errors' , 1 );
+		error_reporting(E_ERROR | E_WARNING | E_PARSE);
+		ob_start();
+		$result = file_get_contents( $query, false, $context );
+		$err = ob_get_clean();
 		if( !$result ){
+			if( $this->debug ){
+				@file_put_contents( "log.txt", "Api request fail - {$err} - " . print_r( $http_response_header, 1 ) . " - \n", FILE_APPEND );
+			}
             throw new Exception("Api request fail. Query was: {$query}");
 		}
 
 		return json_decode( $result, 1 );
 
+	}
+
+	/**
+	 * Building stream context with or without proxy
+	 *
+	 * @return resource stream link
+	 */
+	private function getStreamContext(){
+		$stream_options = [
+				'http' => [
+					'method'  => 'POST'
+					]
+				];
+		if( $this->proxy ){
+			$stream_options = [
+				'http' => [
+					"method"  => "POST",
+					"timeout" => 20,
+					"proxy"   => $this->proxy,
+					'request_fulluri' => True
+				]
+			]; 
+		}
+		if( $this->debug ){
+			@file_put_contents( "log.txt", print_r( $stream_options, 1 ) . "\n", FILE_APPEND );
+		}
+		return stream_context_create( $stream_options );
 	}
 
 }

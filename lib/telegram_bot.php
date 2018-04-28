@@ -20,12 +20,17 @@ class TelegramBot{
 			"/start" => "cmd_start",
 			"/help" => "cmd_help"
 		];
+	/**
+	 * HTTP proxy URI (not socks)
+	 * @example "tcp://122.183.137.190:8080"
+	 */
+	public    $proxy = "";
 
 	/**
 	 * Creates bot class
 	 * @param string $token Telegram Bot Api token
 	 */
-	public function __construct( $token = null ){
+    public function __construct( $token = null ){
 		if( !isset( $this->token ) && !isset( $token ) ){
 			$this->showWebhookForm();
 		}
@@ -33,6 +38,11 @@ class TelegramBot{
 			$this->token = $token;
 		}
 		$this->api = new TelegramBotApi( $this->token );
+		if( $this->proxy ){
+			$this->api->proxy = $this->proxy;
+		}
+		// Uncomment this to get log.txt
+		//$this->api->debug = true;
 	}
 
 	/**
