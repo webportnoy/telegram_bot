@@ -15,6 +15,16 @@ Your site have to use https protocol.
 5. Edit test_bot.php, paste token and bot name
 6. Talk to your bot
 
+## New in version 1.2
+Inline Keyboards support and callbacks for inline buttons
+New in API supports
+1. answerCallbackQuery() method - Reaction of inline keyboard click
+2. deleteMessage() method - Deleting message
+3. editMessageText() method - Editing message
+New Bot functions
+1. callbackAnswer() method - Answer method on click for inline button
+2. callback_default() method - Default callback for inline button
+
 ## New in version 1.1
 1. sendAudio() method - sends audio file with audioplayer (20Mb max)
 2. HTTP proxy support.
@@ -23,7 +33,7 @@ Your site have to use https protocol.
 ### Create commands you want in TestBot class
 
 ```php
-protected $commands = [
+var $commands = [
   "/start" => "cmd_start",
   "/help" => "cmd_help",
   "/hi" => "cmd_hi"
@@ -37,3 +47,6 @@ function cmd_hi(){
   $this->api->sendMessage( "Hi, @" . $this->result["message"]["from"]["username"] . "." );
 }
 ```
+## Example bot
+example_bot.php - example of the telegram bot, demonstating main features of this repo. Sorry of russian comments.
+Test this bot you can here: http://t.me/kpg_test_bot (http://t.kpg.me/kpg_test_bot if blocked t.me)
