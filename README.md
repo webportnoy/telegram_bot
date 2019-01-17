@@ -17,11 +17,11 @@ Your site have to use https protocol.
 
 ## New in version 1.2
 Inline Keyboards support and callbacks for inline buttons
-####New in API supports
+#### New in API supports
 1. answerCallbackQuery() method - Reaction of inline keyboard click
 2. deleteMessage() method - Deleting message
 3. editMessageText() method - Editing message
-####New Bot functions
+#### New Bot functions
 1. callbackAnswer() method - Answer method on click for inline button
 2. callback_default() method - Default callback for inline button
 
