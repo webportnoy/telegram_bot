@@ -48,5 +48,5 @@ function cmd_hi(){
 }
 ```
 ## Example bot
-example_bot.php - example of the telegram bot, demonstating main features of this repo. Sorry of russian comments.
+example_bot.php - example of the telegram bot, demonstrating main features of this repo. Sorry of russian comments.
 Test this bot you can here: http://t.me/kpg_test_bot (http://t.kpg.me/kpg_test_bot if blocked t.me)
