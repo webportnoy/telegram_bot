@@ -12,13 +12,13 @@
 
 class TelegramBotApi{
 
-	const VERSION = '1.1';
+	const VERSION = '1.2';
 
 	protected $apiToken = null;
 
 	protected $apiUrl = "https://api.telegram.org/bot";
 
-	protected $chatId = null;
+	public $chatId = null;
 
 	public $debug = false;
 
@@ -51,6 +51,11 @@ class TelegramBotApi{
 
 		if( isset( $body["message"]["chat"]["id"] ) ){
 			$this->chatId = $body["message"]["chat"]["id"];
+			$this->message = $body["message"];
+		}
+		elseif( isset( $body['callback_query']["message"]["chat"]["id"] ) ){
+			$this->chatId = $body['callback_query']["message"]["chat"]["id"];
+			$this->message = $body['callback_query']["message"];
 		}
 
 		if( $this->debug ){
@@ -75,6 +80,51 @@ class TelegramBotApi{
 			$params['chat_id'] = $this->chatId;
 		}
 		return $this->call("sendMessage", $params);
+	}
+
+	/**
+	 * Editing message
+	 *
+	 * @param array $params Array of parameters
+	 *
+	 * @link https://core.telegram.org/bots/api#editmessagetext
+	 */
+	public function editMessageText( $params ){
+		if( !isset( $params['chat_id'] ) && isset( $this->chatId ) ){
+			$params['chat_id'] = $this->chatId;
+		}
+		return $this->call("editMessageText", $params);
+	}
+
+	/**
+	 * Deleting message
+	 *
+	 * @param int|array $params Message id or array of parameters
+	 * 
+	 * @link https://core.telegram.org/bots/api#deletemessage
+	 */
+	public function deleteMessage( $params ){
+		if( !is_array( $params ) ){
+			$params = [ 'message_id' => $params ];
+		}
+		if( !isset( $params['chat_id'] ) && isset( $this->chatId ) ){
+			$params['chat_id'] = $this->chatId;
+		}
+		return $this->call("deleteMessage", $params);
+	}
+
+	/**
+	 * Reaction of inline keyboard click
+	 * 
+	 * @param int|array $params Callback query id or array of parameters 
+	 *
+	 * @link https://core.telegram.org/bots/api#answercallbackquery
+	 */
+	public function answerCallbackQuery( $params ){
+		if( !is_array( $params ) ){
+			$params = ['callback_query_id' => $params];
+		}
+		return $this->call("answerCallbackQuery", $params);
 	}
 
 	/**
@@ -168,15 +218,16 @@ class TelegramBotApi{
 		error_reporting(E_ERROR | E_WARNING | E_PARSE);
 		ob_start();
 		$result = file_get_contents( $query, false, $context );
+		$decoded = $result ? @json_decode( $result, 1 ) : [];
 		$err = ob_get_clean();
-		if( !$result ){
+		if( !$result || !$decoded['ok'] ){
 			if( $this->debug ){
-				@file_put_contents( "log.txt", "Api request fail - {$err} - " . print_r( $http_response_header, 1 ) . " - \n", FILE_APPEND );
+				@file_put_contents( "log.txt", "Api request fail - {$err}\n {$result}\n", FILE_APPEND );
 			}
-            throw new Exception("Api request fail. Query was: {$query}");
+            throw new Exception("Api request fail. Message: {$decoded['description']}. Query was: {$query}");
 		}
 
-		return json_decode( $result, 1 );
+		return $result;
 
 	}
 
@@ -188,7 +239,8 @@ class TelegramBotApi{
 	private function getStreamContext(){
 		$stream_options = [
 				'http' => [
-					'method'  => 'POST'
+					'method'  => 'POST',
+					'ignore_errors' => '1'
 					]
 				];
 		if( $this->proxy ){
@@ -196,6 +248,7 @@ class TelegramBotApi{
 				'http' => [
 					"method"  => "POST",
 					"timeout" => 20,
+					'ignore_errors' => '1',
 					"proxy"   => $this->proxy,
 					'request_fulluri' => True
 				]

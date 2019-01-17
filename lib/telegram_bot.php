@@ -52,7 +52,12 @@ class TelegramBot{
 	public function replyCommand(){
 		$this->result = $this->api->getWebhookUpdate();
 		if( !empty($this->result) ){
-			$this->callCommand();
+			if( isset( $this->result['callback_query'] ) ){
+				$this->callCallback();
+			}
+			else{
+				$this->callCommand();
+			}
 		}
 		else{
 			echo "I'm a telegram bot";
@@ -82,7 +87,7 @@ class TelegramBot{
 	 * Calls method for entered command (if it exists)
 	 *
 	 */
-	private function callCommand(){
+	public function callCommand(){
 		$text = $this->result["message"]["text"];
 		$cmd = $this->getCommand( $text );
 		if( $cmd ){
@@ -90,6 +95,21 @@ class TelegramBot{
 		}
 		else{
 			$this->cmd_default();
+		}
+	}
+
+	/**
+	 * Calls callback of inline keyboard press
+	 * 
+	 */
+	public function callCallback(){
+		$query = explode(" ", $this->result['callback_query']['data'] );
+		$cmd = "callback_{$query[0]}";
+		if( method_exists( $this, $cmd ) ){
+			$this->$cmd( $this->result['callback_query']['data'] );
+		}
+		else{
+			$this->callback_default( $this->result['callback_query']['data'] );
 		}
 	}
 
@@ -155,8 +175,32 @@ class TelegramBot{
 	}
 
 	/**
+	 * Default callback for inline button
+	 */
+	function callback_default( $query ){
+		$this->api->answerCallbackQuery( [
+			'callback_query_id' => $this->result['callback_query']["id"],
+			'text' => "Action \"{$query}\" is not working now.",
+			'show_alert' => true
+		] );
+	}
+
+	/**
+	 * Answer method on click for inline button
+	 */
+	function callbackAnswer( $text, $keyboard ){
+		$this->api->answerCallbackQuery( $this->result['callback_query']["id"] );
+		$this->api->editMessageText([
+			'chat_id' => $this->result['callback_query']['message']['chat']["id"],
+			'message_id' => $this->result['callback_query']['message']['message_id'],
+			'text' => $text,
+			'parse_mode' => "HTML",
+			'reply_markup' => json_encode( ['inline_keyboard'=>$keyboard] )
+		]);
+	}
+
+	/**
 	 * Shows form and register webhook on telegram side
-	 *
 	 */
 	function showWebhookForm(){
 		$html = <<<EOF
