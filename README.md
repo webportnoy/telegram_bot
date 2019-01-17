@@ -47,6 +47,18 @@ function cmd_hi(){
   $this->api->sendMessage( "Hi, @" . $this->result["message"]["from"]["username"] . "." );
 }
 ```
+
+### Api methods not implemented
+If you want to call telegram API-method not implemented in this repo (i.e. sendLocation: https://core.telegram.org/bots/api#sendlocation) you can call it like this:
+```php
+$params = [
+  'chat_id' => 123,
+  'latitude' => 0,
+  'longitude' => 0
+];
+$this->api->call("sendLocation", $params);
+```
+
 ## Example bot
 example_bot.php - example of the telegram bot, demonstrating main features of this repo. Sorry of russian comments.
 Test this bot you can here: http://t.me/kpg_test_bot (http://t.kpg.me/kpg_test_bot if blocked t.me)
