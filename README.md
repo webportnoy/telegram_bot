@@ -15,6 +15,8 @@ Your site have to use https protocol.
 5. Edit test_bot.php, paste token and bot name
 6. Talk to your bot
 
+## New in version 1.3
+Channel and group chats methods
 ## New in version 1.2
 Inline Keyboards support and callbacks for inline buttons
 #### New in API supports

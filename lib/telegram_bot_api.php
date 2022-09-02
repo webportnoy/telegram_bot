@@ -12,7 +12,7 @@
 
 class TelegramBotApi{
 
-	const VERSION = '1.2';
+	const VERSION = '1.3';
 
 	protected $apiToken = null;
 
@@ -43,20 +43,23 @@ class TelegramBotApi{
 	}
 
 	/**
-	 * Getting message from user
+	 * Getting message from user or channel
 	 *
 	 */
 	public function getWebhookUpdate(){
 		$body = json_decode(file_get_contents('php://input'), true);
 
-		if( isset( $body["message"]["chat"]["id"] ) ){
-			$this->chatId = $body["message"]["chat"]["id"];
+		if( isset( $body["message"] ) ){
 			$this->message = $body["message"];
 		}
-		elseif( isset( $body['callback_query']["message"]["chat"]["id"] ) ){
-			$this->chatId = $body['callback_query']["message"]["chat"]["id"];
+		elseif( isset( $body['callback_query'] ) ){
 			$this->message = $body['callback_query']["message"];
 		}
+		elseif( isset( $body["channel_post"] ) ){
+			$this->message = $body["channel_post"];
+		}
+
+		$this->chatId = $this->message["chat"]["id"];
 
 		if( $this->debug ){
 			@file_put_contents( "log.txt", print_r( $body, 1 ) . "\n", FILE_APPEND );

@@ -46,6 +46,13 @@ class TelegramBot{
 	}
 
 	/**
+	 * Reaction on channel post if bot is channel admin
+	 */
+	public function onChannelPost(){
+		
+	}
+
+	/**
 	 * Gets command when called as webhook and calls method for this command
 	 *
 	 */
@@ -54,6 +61,9 @@ class TelegramBot{
 		if( !empty($this->result) ){
 			if( isset( $this->result['callback_query'] ) ){
 				$this->callCallback();
+			}
+			elseif( isset( $this->result['channel_post'] ) ){
+				$this->onChannelPost();
 			}
 			else{
 				$this->callCommand();
@@ -71,16 +81,20 @@ class TelegramBot{
 	 * @param string $text
 	 */
 	public function getCommand( $text ){
+
 		// Commands in group like /start@some_bot
-		if( isset( $this->bot_name ) && strpos( $text, $this->bot_name ) ){
-			$text = str_replace( $this->bot_name, "", $text );
+		if( isset( $this->bot_name ) && strpos( $text, $this->bot_name ) !== false ){
+			$text = trim(str_replace( $this->bot_name, "", $text ));
 		}
+
 		$text = explode(" ", $text );
 		$text = $text[0];
+
+		$methodName = "cmd_default";
 		if( $text && array_key_exists( $text, $this->commands ) && method_exists( $this, $this->commands[$text] ) ){
-			return $this->commands[$text];
+			$methodName = $this->commands[$text];
 		}
-		return false;
+		return $methodName;
 	}
 
 	/**
@@ -88,14 +102,46 @@ class TelegramBot{
 	 *
 	 */
 	public function callCommand(){
-		$text = $this->result["message"]["text"];
-		$cmd = $this->getCommand( $text );
-		if( $cmd ){
-			$this->$cmd();
+		$this->text = array_key_exists( "text", $this->result["message"] ) ? $this->result["message"]["text"] : "";
+
+		$cmd = $this->getCommand( $this->text );
+
+		// Commands in group like /start@some_bot
+		if( $this->isGroup() ){
+			$cmd .= "_group";
+			if( $this->isNewMember() ){
+				$cmd = "cmd_new_group_member";
+			}
+			elseif( !$this->hasMyMention() || !method_exists( $this, $cmd ) ){
+				return;
+			}
 		}
-		else{
-			$this->cmd_default();
-		}
+
+		$this->$cmd();
+
+	}
+
+	/**
+	 * Group chats: Check if new user joined to chat
+	 */
+	public function isNewMember(){
+		return isset( $this->result["message"]["new_chat_member"] );
+	}
+
+	/**
+	 * Check if we in the group chat
+	 */
+	public function isGroup(){
+		$mess = isset($this->result["edited_message"]) ? $this->result["edited_message"] : $this->result["message"];
+		return @substr( $mess["chat"]['id'], 0, 1 ) == "-";
+	}
+
+	/**
+	 * Check if sombody write mention to bot
+	 * 
+	 */
+	public function hasMyMention(){
+		return isset( $this->bot_name ) && strpos( $this->text, $this->bot_name ) !== false;
 	}
 
 	/**
@@ -225,7 +271,7 @@ EOF;
 		if( !empty( $_GET ) ){
 
 			$this->api = new TelegramBotApi( $_GET['token'] );
-			$res = $this->api->setWebhook( $_GET['url'] );
+			$res = json_decode( $this->api->setWebhook( $_GET['url'] ), 1 );
 			if( $res['ok'] ){
 				echo "Webhook is set! Fill token in your bot source to make it working!";
 			}
