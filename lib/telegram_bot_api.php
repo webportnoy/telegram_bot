@@ -152,6 +152,35 @@ class TelegramBotApi{
 	}
 
 	/**
+	 * Sending media group to chat
+	 * 
+	 * @param $mediaType (audio|document|photo|video)
+	 * @param $mediaLinks array of links or file ids
+	 * @param string $caption (Optional) Text for media group
+	 * 
+	 * @link https://core.telegram.org/bots/api#sendmediagroup
+	 */
+	public function sendMediaGroup( $mediaType, $mediaLinks, $caption = null ){
+		$album = [];
+		foreach( $mediaLinks as $k => $url ){
+			$album[] = [
+				'type' => $mediaType,
+				'media' => $url
+			];
+		}
+		if( $caption ){
+			$itemForCaption = $mediaType == "audio" ? (count($album)-1) : 0;
+			$album[$itemForCaption]['caption'] = $caption;
+			$album[$itemForCaption]['parse_mode'] = "HTML";
+		}
+
+		return $this->call("sendMediaGroup", [
+			'chat_id' => $this->chatId,
+			'media' => json_encode( $album )
+		]);
+	}
+
+	/**
 	 * Sending audio to chat
 	 *
 	 * @param string|array  $params  Url or File Id or array of parameters
